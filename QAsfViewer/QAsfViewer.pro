@@ -13,11 +13,19 @@ TEMPLATE = app
 SOURCES += main.cpp\
     cframe.cpp \
     casf.cpp \
-    functions.cpp
+    window.cpp
 
 HEADERS  += \
     cframe.h \
-    casf.h
+    casf.h \
+    window.h
+
+
+
+
+
+
+
 
 
 
