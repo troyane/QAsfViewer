@@ -8,6 +8,7 @@
 class casf
 {
 public:
+
     casf();
     ~casf();
     QString getHeader(QString name);

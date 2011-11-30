@@ -2,6 +2,7 @@
 #include <QtCore>
 #include <casf.h>
 #include <cframe.h>
+#include <functions.cpp>
 
 int main(int argc, char *argv[])
 {
@@ -13,6 +14,7 @@ int main(int argc, char *argv[])
 // ------ graphics objects
     QGraphicsView *view = new QGraphicsView(window);
     QGraphicsScene *scene = new QGraphicsScene(window);
+    QImage *image = new QImage();
 
     QLabel *lblAboveView = new QLabel("", window);
     QLabel *lblAboveSlider = new QLabel("Position:", window);
@@ -64,12 +66,35 @@ int main(int argc, char *argv[])
     window->setLayout(mainHLayout);
 
 // ------ Applaing functional
+    QPixmap buffer(100, 100);
+    QPainter painter(&buffer);
+//    painter.drawLine(0,0,30,30);
+
+    casf asf;
+
+
+//    example3.asf
+
+    painter.fillRect(buffer.rect(), QBrush(Qt::yellow));
+    painter.setPen(Qt::red);
+    painter.drawPoint(20, 20);
+
+    scene->addPixmap(buffer);
     view->setScene(scene);
-
-
-
 
 //    QObject::connect(btnOpen, SIGNAL(clicked()), asf, SLOT() )
     window->show();
+
+    QString filePath = QFileDialog::getOpenFileName(window,
+                                                  "Open file",
+                                                  "",
+                                                  "All (*.*)");
+    if(!filePath.isEmpty())
+    {
+        readFile(filePath);
+    }
+
+
+
     return a.exec();
 }

@@ -15,7 +15,7 @@ public:
     int setPoint(const int x, const int y, const int val);
     int point(int x, int y) const;
 
-    QImage* frameToImage(const int numRows, const int numCols);
+    QImage* createImage(const int numRows, const int numCols);
 private:
     QMap <QString, QString> headers;
     int **data;

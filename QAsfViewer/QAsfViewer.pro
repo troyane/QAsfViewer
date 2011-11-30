@@ -12,11 +12,13 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
     cframe.cpp \
-    casf.cpp
+    casf.cpp \
+    functions.cpp
 
 HEADERS  += \
     cframe.h \
     casf.h
+
 
 
 

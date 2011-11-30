@@ -21,7 +21,7 @@ int CFrame::point(int x, int y) const
 
 int CFrame::setPoint(const int x, const int y, const int val)
 {    
-    if(data[x][y] = val)
+    if((data[x][y] = val))
     {
         return 0;
     }
@@ -41,7 +41,7 @@ CFrame::CFrame(const int numRows, const int numCols)
 CFrame::~CFrame(){}
 
 
-QImage* CFrame::frameToImage(const int numRows, const int numCols)
+QImage* CFrame::createImage(const int numRows, const int numCols)
 {
     QImage *img = new QImage(numRows, numCols, QImage::Format_RGB32);
     QRgb val;    
