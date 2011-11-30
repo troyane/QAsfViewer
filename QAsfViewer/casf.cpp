@@ -28,6 +28,7 @@ int casf::readFile(QString filePath)
     {
         QTextStream t( &f );   // use a text stream
         QString s;
+        //TODO: exept not ASF file
         bool flag = false;
         // READING HEADER
         while (!flag) {        // until end of header

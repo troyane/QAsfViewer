@@ -12,6 +12,8 @@ class window : public QWidget
     Q_OBJECT
 public:
     explicit window(QWidget *parent = 0);
+
+
     QSlider *slider;
     // ------ graphics objects
     QGraphicsView *view;
@@ -23,6 +25,7 @@ signals:
 
 public slots:
     void showFrame(int numFrame);
+    void openFile();
 
 private:
     QPushButton *btnOpen;
@@ -37,7 +40,7 @@ private:
     QPushButton *btnStop;
     QPushButton *btnNextFrame;
     QPushButton *btnPrevFrame;
-    QListView *lstView;
+    QTextEdit *lstView;
     QLabel *lblAboveList;
     QLabel *lblAboveBtns;
     // ------ Control buttons

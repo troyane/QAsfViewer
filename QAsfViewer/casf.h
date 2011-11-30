@@ -15,10 +15,9 @@ public:
     void includeHeader(QString name, QString val);
     QList <CFrame> frames;
     int readFile(QString filePath);
-
-private:
     QMap <QString, QString> headers;
 
+private:
 };
 
 #endif // CASF_H

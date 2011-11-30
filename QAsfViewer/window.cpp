@@ -1,6 +1,7 @@
 #include "window.h"
 #include <QtGui>
 
+
 window::window(QWidget *parent) :
     QWidget(parent)
 {
@@ -21,7 +22,7 @@ window::window(QWidget *parent) :
     btnNextFrame = new QPushButton(">", this);
     btnPrevFrame = new QPushButton("<", this);
 
-    lstView = new QListView(this);
+    lstView = new QTextEdit(this);
     lstView->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     lblAboveList = new QLabel("File parameters:");
     lblAboveBtns = new QLabel("Operations:");
@@ -63,20 +64,21 @@ window::window(QWidget *parent) :
     actualFrame = -1;
 
     QObject::connect(slider, SIGNAL(valueChanged(int)), this, SLOT(showFrame(int)));
+    QObject::connect(btnOpen, SIGNAL(clicked()), this, SLOT(openFile()));
 }
 
 void window::showFrame(int numFrame)
 {
-    int tmp = numFrame-1;
-    if(tmp!=-1 && actualFrame!=tmp)
+//    int tmp = numFrame-1;
+    if(numFrame!=-1 && actualFrame!=numFrame)
     {
         int rows = asf->getHeader("ROWS").toInt();
         int cols = asf->getHeader("COLS").toInt();
         qreal scaleFactorX = view->width() / rows - 0.5;
         qreal scaleFactorY = view->height() / cols - 0.5;
 
-        slider->setMinimum(asf->getHeader("START_FRAME").toInt());
-        slider->setMaximum(asf->getHeader("END_FRAME").toInt());
+        slider->setMinimum(asf->getHeader("START_FRAME").toInt() - 1);
+        slider->setMaximum(asf->getHeader("END_FRAME").toInt() - 1);
 
         QPixmap buffer(rows, cols);
         CFrame frame = asf->frames.at(numFrame);
@@ -92,7 +94,36 @@ void window::showFrame(int numFrame)
 
 //        view->scale(scaleFactorX, scaleFactorY);
 
-        actualFrame = tmp;
+        actualFrame = numFrame;
+        lblAboveSlider->setText(QString("<b>Position:</b> %1").arg(actualFrame));
     }
 
+}
+
+void window::openFile()
+{
+    QString filePath = QFileDialog::getOpenFileName(this,
+                              "Open file", "", "ASF-files (*.asf)");
+    if(!filePath.isEmpty())
+    {
+        this->asf = new casf;
+        if(this->asf->readFile(filePath)!=0)
+        {
+            QMessageBox::critical(0, "QAsfViewer - Critical", "File read error!.\n");
+        } else {
+            QMessageBox::information(0, "QAsfViewer - Information", "File was successfuly loaded!");
+            // output to lstView all headers from ASF
+            this->lstView->append(QString("<b>File:</b> %1").arg(filePath));
+            QMap <QString, QString>::iterator mIter = this->asf->headers.begin();
+            QMap <QString, QString>::iterator mEnd = this->asf->headers.end();
+
+            for (; mIter != mEnd; mIter++)
+            {
+                this->lstView->append(QString("<b>%1:</b> %2").arg(mIter.key()).arg(mIter.value()));
+            }
+
+        }
+    } else {
+        QMessageBox::information(0, "QAsfViewer - Information","You must chose an ASF-file!");
+    }
 }

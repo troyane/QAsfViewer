@@ -2,6 +2,7 @@
 #include <QtCore>
 #include <casf.h>
 #include <window.h>
+#include <QtGlobal>
 
 int main(int argc, char *argv[])
 {
@@ -10,14 +11,5 @@ int main(int argc, char *argv[])
 
     w->show();
 
-    QString filePath = QFileDialog::getOpenFileName(w,
-                              "Open file", "", "All (*.*)");
-
-    if(!filePath.isEmpty())
-    {
-        w->asf = new casf;
-
-        w->asf->readFile(filePath);
-    }
     return a.exec();
 }
