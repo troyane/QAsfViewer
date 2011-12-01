@@ -53,6 +53,8 @@ QImage* CFrame::createImage()
         for(int j=0; j<nCols; j++)
         {
             int t = data[convert(i, j)];
+
+            //val = qRgb(Color && $FF, (Color shr 8) && $FF, (Color shr 16) && $FF);
             val = qRgb(t, t, t);
             img->setPixel(i, j, val);
         }

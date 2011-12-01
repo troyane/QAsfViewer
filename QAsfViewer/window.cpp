@@ -18,14 +18,20 @@ window::window(QWidget *parent) :
     lblAboveView = new QLabel("", this);
     lblAboveSlider = new QLabel("Position:", this);
     slider = new QSlider(Qt::Horizontal, this);
+    slider->setEnabled(false);
 
     btnPlay = new QPushButton("Play", this);
     btnStop = new QPushButton("Stop", this);
     btnNextFrame = new QPushButton(">", this);
     btnPrevFrame = new QPushButton("<", this);
 
+    this->btnPlay->setEnabled(false);
+    this->btnStop->setEnabled(false);
+    this->btnPrevFrame->setEnabled(false);
+    this->btnNextFrame->setEnabled(false);
+
     lstView = new QTextEdit(this);
-    lstView->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    lstView->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
     lblAboveList = new QLabel("File parameters:", this);
     lblAboveBtns = new QLabel("Operations:", this);
 
@@ -127,7 +133,12 @@ void window::openFile()
             this->lstView->append(QString("<b>File:</b> %1").arg(filePath));
             QMap <QString, QString>::iterator mIter = asf->headers.begin();
             QMap <QString, QString>::iterator mEnd = asf->headers.end();
-
+            // enable all controls
+            this->btnPlay->setEnabled(true);
+            this->btnStop->setEnabled(true);
+            this->btnPrevFrame->setEnabled(true);
+            this->btnNextFrame->setEnabled(true);
+            this->slider->setEnabled(true);
             for (; mIter != mEnd; mIter++)
             {
                 this->lstView->append(QString("<b>%1:</b> %2").arg(mIter.key()).arg(mIter.value()));
@@ -135,7 +146,7 @@ void window::openFile()
         }
     } else
     {
-        QMessageBox::information(0, "QAsfViewer - Information","You must chose an ASF-file!");
+        QMessageBox::information(0, "QAsfViewer - Information", "You must choose an ASF-file!");
         slider->setValue(0);
     }
 }
@@ -155,6 +166,9 @@ void window::nextFrame()
     if(tmp == this->slider->value())
     {
         timer->stop();
+        btnPlay->setEnabled(true);
+        slider->setValue(0);
+
     }
 }
 
