@@ -8,12 +8,11 @@
 class casf
 {
 public:
-
     casf();
     ~casf();
     QString getHeader(QString name);
     void includeHeader(QString name, QString val);
-    QList <CFrame> frames;
+    QList <CFrame*> frames;
     int readFile(QString filePath);
     QMap <QString, QString> headers;
 

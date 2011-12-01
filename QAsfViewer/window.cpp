@@ -5,10 +5,13 @@
 window::window(QWidget *parent) :
     QWidget(parent)
 {
+    asf = 0;
     btnOpen = new QPushButton("Open", this);
-    button2 = new QPushButton("Two", this);
+    chkScale = new QCheckBox("Scale image", this);
+    chkScale->setDisabled(true);
+    chkScale->setHidden(true);
+    chkScale->setChecked(false);
 
-    //    QImage *image = new QImage();
     view = new QGraphicsView(this);
     scene = new QGraphicsScene(this);
 
@@ -17,37 +20,36 @@ window::window(QWidget *parent) :
     slider = new QSlider(Qt::Horizontal, this);
 
     btnPlay = new QPushButton("Play", this);
-    btnPause = new QPushButton("Pause", this);
     btnStop = new QPushButton("Stop", this);
     btnNextFrame = new QPushButton(">", this);
     btnPrevFrame = new QPushButton("<", this);
 
     lstView = new QTextEdit(this);
     lstView->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    lblAboveList = new QLabel("File parameters:");
-    lblAboveBtns = new QLabel("Operations:");
+    lblAboveList = new QLabel("File parameters:", this);
+    lblAboveBtns = new QLabel("Operations:", this);
 
     // ------ Control buttons
-    controlsLayout = new QHBoxLayout;
+    controlsLayout = new QHBoxLayout();
     controlsLayout->addStretch();
     controlsLayout->addWidget(btnPlay);
-    controlsLayout->addWidget(btnPause);
     controlsLayout->addWidget(btnStop);
     controlsLayout->addWidget(btnPrevFrame);
     controlsLayout->addWidget(btnNextFrame);
     controlsLayout->addStretch();
 
+
     // ------ Left side
-    leftVLayout = new QVBoxLayout;
+    leftVLayout = new QVBoxLayout();
     leftVLayout->addWidget(lblAboveBtns);
     leftVLayout->addWidget(btnOpen);
-    leftVLayout->addWidget(button2);
+    leftVLayout->addWidget(chkScale);
     leftVLayout->addWidget(lblAboveList);
     leftVLayout->addWidget(lstView);
     leftVLayout->addStretch();
 
     // ------ Right side
-    rightVLayout = new QVBoxLayout;
+    rightVLayout = new QVBoxLayout();
     rightVLayout->addWidget(lblAboveView);
     rightVLayout->addWidget(view);
     rightVLayout->addWidget(lblAboveSlider);
@@ -55,49 +57,56 @@ window::window(QWidget *parent) :
     rightVLayout->addLayout(controlsLayout);
 
     // ------ Main layout
-    mainHLayout = new QHBoxLayout;
+    mainHLayout = new QHBoxLayout(this);
     mainHLayout->addLayout(leftVLayout);
     mainHLayout->addLayout(rightVLayout);
 
     this->setLayout(mainHLayout);
 
-    actualFrame = -1;
+    actualFrame = 0;
 
+    timer = new QTimer(this);
+    QObject::connect(timer, SIGNAL(timeout()), this, SLOT(nextFrame()));
     QObject::connect(slider, SIGNAL(valueChanged(int)), this, SLOT(showFrame(int)));
     QObject::connect(btnOpen, SIGNAL(clicked()), this, SLOT(openFile()));
+    QObject::connect(btnPlay, SIGNAL(clicked()), this, SLOT(play()));
+    QObject::connect(btnPrevFrame, SIGNAL(clicked()), this, SLOT(prevFrame()));
+    QObject::connect(btnNextFrame, SIGNAL(clicked()), this, SLOT(nextFrame()));
+    QObject::connect(btnStop, SIGNAL(clicked()), this, SLOT(stop()));
+    QObject::connect(chkScale, SIGNAL(toggled(bool)), this, SLOT(setScale(bool)));
+}
+
+window::~window()
+{
+    if(asf) delete asf;
 }
 
 void window::showFrame(int numFrame)
 {
 //    int tmp = numFrame-1;
-    if(numFrame!=-1 && actualFrame!=numFrame)
+    if(numFrame!=0 && actualFrame!=numFrame)
     {
         int rows = asf->getHeader("ROWS").toInt();
         int cols = asf->getHeader("COLS").toInt();
-        qreal scaleFactorX = view->width() / rows - 0.5;
-        qreal scaleFactorY = view->height() / cols - 0.5;
 
         slider->setMinimum(asf->getHeader("START_FRAME").toInt() - 1);
         slider->setMaximum(asf->getHeader("END_FRAME").toInt() - 1);
 
         QPixmap buffer(rows, cols);
-        CFrame frame = asf->frames.at(numFrame);
+        CFrame *frame = asf->frames.at(numFrame);
 
-        QImage *img = frame.createImage(rows, cols);
+        QImage *img = frame->createImage();
         buffer.convertFromImage(*img, Qt::AutoColor);
 
         scene->addPixmap(buffer);
 
-
         if (img) delete img;
         view->setScene(scene);
 
-//        view->scale(scaleFactorX, scaleFactorY);
-
         actualFrame = numFrame;
         lblAboveSlider->setText(QString("<b>Position:</b> %1").arg(actualFrame));
+        //lblAboveView->setText(QString("<b>Frame info:</b> %1").arg(frame.getHeader()));
     }
-
 }
 
 void window::openFile()
@@ -106,24 +115,64 @@ void window::openFile()
                               "Open file", "", "ASF-files (*.asf)");
     if(!filePath.isEmpty())
     {
-        this->asf = new casf;
-        if(this->asf->readFile(filePath)!=0)
+        if (asf) delete asf;
+        asf = new casf;
+        if (asf->readFile(filePath))
         {
-            QMessageBox::critical(0, "QAsfViewer - Critical", "File read error!.\n");
-        } else {
+            QMessageBox::critical(0, "QAsfViewer - Critical", "File read error!\n No file were opened!");
+        } else
+        {
             QMessageBox::information(0, "QAsfViewer - Information", "File was successfuly loaded!");
             // output to lstView all headers from ASF
             this->lstView->append(QString("<b>File:</b> %1").arg(filePath));
-            QMap <QString, QString>::iterator mIter = this->asf->headers.begin();
-            QMap <QString, QString>::iterator mEnd = this->asf->headers.end();
+            QMap <QString, QString>::iterator mIter = asf->headers.begin();
+            QMap <QString, QString>::iterator mEnd = asf->headers.end();
 
             for (; mIter != mEnd; mIter++)
             {
                 this->lstView->append(QString("<b>%1:</b> %2").arg(mIter.key()).arg(mIter.value()));
             }
-
         }
-    } else {
+    } else
+    {
         QMessageBox::information(0, "QAsfViewer - Information","You must chose an ASF-file!");
+        slider->setValue(0);
     }
+}
+
+void window::play()
+{
+    this->btnPlay->setDisabled(true);
+    float playSpeed = this->asf->getHeader("SECONDS_PER_FRAME").toFloat();
+    timer->start((int)1000*playSpeed);
+}
+
+void window::nextFrame()
+{
+    int tmp = this->slider->value();
+    qDebug()<<tmp<<" ";
+    this->slider->setValue(this->slider->value()+1);
+    if(tmp == this->slider->value())
+    {
+        timer->stop();
+    }
+}
+
+void window::prevFrame()
+{
+    this->slider->setValue(this->slider->value()-1);
+}
+
+void window::stop()
+{
+    timer->stop();
+    slider->setValue(0);
+    lblAboveSlider->setText("<b>Position:</b>");
+    btnPlay->setDisabled(false);
+}
+
+void window::setScale(bool x)
+{
+    if (x) view->scale(scaleFactorX, scaleFactorY);
+    else view->scale(1/scaleFactorX, 1/scaleFactorY);
 }

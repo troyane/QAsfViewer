@@ -12,13 +12,18 @@ public:
     QString getHeader(QString name);
     void includeHeader(QString name, QString val);
 
+    int convert(int x, int y);
     int setPoint(const int x, const int y, const int val);
-    int point(int x, int y) const;
+    int point(int x, int y);
 
-    QImage* createImage(const int numRows, const int numCols);
+    void fill();
+
+    QImage* createImage();
 private:
     QMap <QString, QString> headers;
-    int **data;
+
+    unsigned int *data;
+    int nRows, nCols;
 };
 
 #endif // CFRAME_H

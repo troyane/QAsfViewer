@@ -7,8 +7,11 @@ casf::casf()
 
 casf::~casf()
 {
-    headers.clear();
-    frames.clear();
+    if (!frames.isEmpty())
+    for (int i = 0; i < frames.size(); i++)
+    {
+        delete frames[i];
+    }
 }
 
 void casf::includeHeader(QString name, QString val)
@@ -26,16 +29,32 @@ int casf::readFile(QString filePath)
     QFile f(filePath);
     if(f.open(QIODevice::ReadOnly))
     {
+        bool firstString = true;
         QTextStream t( &f );   // use a text stream
         QString s;
-        //TODO: exept not ASF file
         bool flag = false;
         // READING HEADER
-        while (!flag) {        // until end of header
+        while (!flag)
+        {        // until end of header
             s = t.readLine();       // line of text excluding '\n'
+
             int firstSpaceIndx = s.indexOf(" ");
+
             QString headName = s.left(firstSpaceIndx);
             QString headVal = s.right(s.length()-firstSpaceIndx-1);
+
+            if(firstString)
+            {   // Check if file is ASF-MOVIE
+                if(headName=="DATA_TYPE" && headVal=="MOVIE")
+                {
+                    firstString = false;
+                }
+                else
+                {
+                    return 1;
+                }
+            }
+
             if(!(headName=="ASCII_DATA" && headVal=="@@"))
             {
 //                qDebug() << headName<<" "<<headVal;
@@ -46,29 +65,31 @@ int casf::readFile(QString filePath)
             }
         }
         s = t.readLine();// read null line
+
         const int rows = this->getHeader("ROWS").toInt(); // num of rows
         const int cols = this->getHeader("COLS").toInt(); // num of cols
+
         const int maxNumOfFrames = this->getHeader("END_FRAME").toInt(); // num of frames
 
         // READING FRAMES
-        for(int frameCount = 1; frameCount <= maxNumOfFrames; frameCount++){
-            //            while(!t.atEnd()){
+        for(int frameCount = 1; frameCount <= maxNumOfFrames; frameCount++)
+        {
             // TODO: PROCESS FRAME HEADER
             s = t.readLine(); // frame header
 //            qDebug()<<"Frame "<<frameCount;
             //create empty frame
-            CFrame tempFrame(rows, cols);
+            CFrame *tempFrame = new CFrame(rows, cols);
 
             for(int i=0; i<rows; i++)
             {
                 // read all rows of frame
                 s = t.readLine();
+
                 QStringList tempList = s.split(",");    // get list of values
+
                 for(int j=0; j<cols; j++)
                 {  // filling i-row
-                    //= asf.frames[frameCount-1];
-                    tempFrame.setPoint(i, j, tempList.at(j).toInt());
-//                    qDebug() << "Point at ["<<i<<", "<<j<<"] = "<<tempFrame.point(i, j);
+                    tempFrame->setPoint(i, j, tempList.at(j).toInt());
                 }
             }
             //end of frame

@@ -12,7 +12,7 @@ class window : public QWidget
     Q_OBJECT
 public:
     explicit window(QWidget *parent = 0);
-
+    ~window();
 
     QSlider *slider;
     // ------ graphics objects
@@ -20,23 +20,33 @@ public:
     QGraphicsScene *scene;
     casf *asf;
     int actualFrame;
+    bool isScaled;
+    qreal scaleFactorX;
+    qreal scaleFactorY;
+
+//    view->scale(scaleFactorX, scaleFactorY);
+//    qreal scaleFactorX = view->width() / rows - 0.5;
+//    qreal scaleFactorY = view->height() / cols - 0.5;
+
 
 signals:
 
 public slots:
     void showFrame(int numFrame);
     void openFile();
+    void play();
+    void nextFrame();
+    void prevFrame();
+    void stop();
+    void setScale(bool x);
 
 private:
     QPushButton *btnOpen;
-    QPushButton *button2;
     // ------ graphics objects
-
     QLabel *lblAboveView;
     QLabel *lblAboveSlider;
-
+    QCheckBox *chkScale;
     QPushButton *btnPlay;
-    QPushButton *btnPause;
     QPushButton *btnStop;
     QPushButton *btnNextFrame;
     QPushButton *btnPrevFrame;
@@ -51,6 +61,8 @@ private:
     QVBoxLayout *rightVLayout;
     // ------ Main layout
     QHBoxLayout *mainHLayout;
+
+    QTimer *timer;
 };
 
 #endif // WINDOW_H
