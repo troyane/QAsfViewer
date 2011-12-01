@@ -47,15 +47,16 @@ CFrame::~CFrame()
 QImage* CFrame::createImage()
 {
     QImage *img = new QImage(nRows, nCols, QImage::Format_RGB32);
-    QRgb val;    
+    QRgb val;
     for(int i=0; i<nRows; i++)
     {
         for(int j=0; j<nCols; j++)
         {
             int t = data[convert(i, j)];
 
-            //val = qRgb(Color && $FF, (Color shr 8) && $FF, (Color shr 16) && $FF);
-            val = qRgb(t, t, t);
+            val = qRgb(t & 0xFF, (t >> 8) & 0xFF, (t >> 16) & 0xFF);
+            // grayscale
+            // val = qRgb(t, t, t);
             img->setPixel(i, j, val);
         }
     }
@@ -64,7 +65,7 @@ QImage* CFrame::createImage()
 
 int CFrame::convert(int x, int y)
 {
-//    qDebug()<<"x="<<x<<" y="<<y<<" f="<<y + x*nCols;
+    //    qDebug()<<"x="<<x<<" y="<<y<<" f="<<y + x*nCols;
     return (x + y*nRows);
 }
 
